@@ -68,6 +68,22 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
     {
         DrawView.updateBoxes(boxes);
     }
+
+    private static Rect getBoxIntersection(Rect box1, Rect box2, Rect box3)
+    {
+        //create a rectangle for the intersection of the 3 given rectangles
+        Rect intersection = new Rect();
+        //set intersection to the intersect of the first 2 boxes
+        //and set success to true if there was an intersection, false otherwise
+        boolean success = intersection.setIntersect(box1, box2);
+        //set intersection to the intersect between itself and the 3rd box
+        //and set success to true if *both* were intersections, false otherwise
+        success = success && intersection.setIntersect(intersection, box3);
+
+        if(success) { return intersection; }
+        else {return null; }
+    }
+
     private void initMap()
     {
         //add beacons and their locations to the hashmap
