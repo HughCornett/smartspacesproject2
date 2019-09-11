@@ -1,16 +1,32 @@
 package com.example.smartspacesproject2;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.Manifest;
+import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
 import android.graphics.Color;
+import android.os.RemoteException;
 
+import org.altbeacon.beacon.Beacon;
+import org.altbeacon.beacon.BeaconConsumer;
+import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.BeaconParser;
+import org.altbeacon.beacon.RangeNotifier;
+import org.altbeacon.beacon.Region;
+import org.altbeacon.beacon.service.ArmaRssiFilter;
+
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements BeaconConsumer {
     //CONSTANT VARIABLES
     public static final int BOTTOM_BORDER = 125;
     public static final int LEFT_BORDER = 205;
@@ -23,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
     //Dictionary of beacon name to pixel coordinates on screen
     Map<Integer, CoordinatePair> map = new HashMap<>();
+    private BeaconManager beaconManager;
 
     private static CoordinatePair translateWorldToMap(CoordinatePair worldCoordinates)
     {
@@ -98,16 +115,46 @@ public class MainActivity extends AppCompatActivity {
         map.put(143, new CoordinatePair(7.23, 12.76));
         map.put(180, new CoordinatePair(44.07, 25.11));
         map.put(181, new CoordinatePair(48.33, 36.81));
+
+
+    }
+
+
+
+    private void initBeaconManager()
+    {
+        this.beaconManager = BeaconManager.getInstanceForApplication(this);
+        this.beaconManager.getBeaconParsers().add(new BeaconParser(). setBeaconLayout("m:0-3=4c000215,i:4-19,i:20-21,i:22-23,p:24-24"));
+
+        BeaconManager.setRssiFilterImplClass(ArmaRssiFilter.class);
+        this.beaconManager.bind(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("This app needs location access");
+                builder.setMessage("Please grant location access so this app can detect beacons");
+                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+                    }
+                });
+                builder.show();
+            }
+        }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         //initialize the dictionary of beacon IDs to coordinates
-        initMap();
+
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        initMap();
+        initBeaconManager();
 
         drawView = new DrawView(this);
         drawView.setBackgroundColor(Color.WHITE);
@@ -119,5 +166,28 @@ public class MainActivity extends AppCompatActivity {
 
         updateDrawview();
 
+    }
+
+    @Override
+    public void onBeaconServiceConnect() {
+        beaconManager.removeAllRangeNotifiers();
+        beaconManager.addRangeNotifier(new RangeNotifier() {
+            @Override
+            public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
+                if (beacons.size() > 0)
+                {
+                    //beaconList.clear();
+                    for(Iterator<Beacon> iterator = beacons.iterator(); iterator.hasNext();) {
+                        Beacon beacon = iterator.next();
+
+
+                    }
+
+                }
+            }
+        });
+        try {
+            beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
+        } catch (RemoteException e) {    }
     }
 }
