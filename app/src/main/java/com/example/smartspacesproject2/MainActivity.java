@@ -64,6 +64,10 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
         boxes.add(new Rect((int) coordinates.getX()-radius,(int) coordinates.getY()+radius,
                 (int) coordinates.getX()+radius,(int) coordinates.getY()-radius));
     }
+    private void clearBoxes()
+    {
+        boxes.clear();
+    }
     private static void updateDrawview()
     {
         DrawView.updateBoxes(boxes);
@@ -71,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
 
     private static Rect getBoxIntersection(Rect box1, Rect box2, Rect box3)
     {
+
         //create a rectangle for the intersection of the 3 given rectangles
         Rect intersection = new Rect();
         //set intersection to the intersect of the first 2 boxes
@@ -87,7 +92,6 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
     private void initMap()
     {
         //add beacons and their locations to the hashmap
-        map.put(189, new CoordinatePair(24.93, 18.73));
         map.put(189, new CoordinatePair(31.35, 25.41));
         map.put(53, new CoordinatePair(24.93, 18.73));
         map.put(79, new CoordinatePair(18.51, 11.14));
