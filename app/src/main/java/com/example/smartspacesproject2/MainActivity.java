@@ -2,6 +2,7 @@ package com.example.smartspacesproject2;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.content.DialogInterface;
@@ -28,7 +29,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
-public class MainActivity extends AppCompatActivity implements BeaconConsumer {
+public class MainActivity extends FragmentActivity implements BeaconConsumer, Runnable{
     //CONSTANT VARIABLES
     public static final int BOTTOM_BORDER = 125;
     public static final int LEFT_BORDER = 205;
@@ -38,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
 
     //OTHER VARIABLES
     DrawView drawView;
-    private static Vector<Rect> boxes = new Vector<>();
+    private Vector<Rect> boxes = new Vector<>();
 
     //Dictionary of beacon name to pixel coordinates on screen
     Map<Integer, CoordinatePair> map = new HashMap<>();
@@ -66,16 +67,18 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
     }
     private void addBox(CoordinatePair coordinates, int radius)
     {
-        boxes.add(new Rect((int) coordinates.getX()-radius,(int) coordinates.getY()+radius,
+        drawView.addBox(new Rect((int) coordinates.getX()-radius,(int) coordinates.getY()+radius,
                 (int) coordinates.getX()+radius,(int) coordinates.getY()-radius));
     }
     private void clearBoxes()
     {
         boxes.clear();
     }
-    private static void updateDrawview()
+    private void updateDrawview()
     {
-        DrawView.updateBoxes(boxes);
+        drawView.updateView();
+
+
     }
 
     private static Rect getBoxIntersection(Rect box1, Rect box2, Rect box3)
@@ -177,20 +180,23 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
     protected void onCreate(Bundle savedInstanceState)
     {
         //initialize the dictionary of beacon IDs to coordinates
-
-
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        initMap();
-        initBeaconManager();
-
         drawView = new DrawView(this);
         drawView.setBackgroundColor(Color.WHITE);
         setContentView(drawView);
+        super.onCreate(savedInstanceState);
 
-        addBox(translateWorldToMap(map.get(53)), translateMetersToPixels(2));
+        initMap();
+        initBeaconManager();
 
-        updateDrawview();
+
+
+
+        //addBox(translateWorldToMap(map.get(53)), translateMetersToPixels(2));
+
+
+
+        Thread thread = new Thread(this);
+        thread.start();
 
     }
 
@@ -202,13 +208,24 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
                 if (beacons.size() > 0)
                 {
-                    //beaconList.clear();
+
+
                     for(Iterator<Beacon> iterator = beacons.iterator(); iterator.hasNext();) {
                         Beacon beacon = iterator.next();
                         addOrUpdateList(beacon);
                     }
 
                     Collections.sort(beaconList,new SortByDistance());
+
+                    /*clearBoxes();
+                    if(beaconList.size()>=3) {
+                        for (int i = 0; i < 3; ++i) {
+                            addBox(translateWorldToMap(map.get(beaconList.get(i).getId())), translateMetersToPixels(beaconList.get(i).getDistance()));
+                        }
+                    }
+                    updateDrawview();*/
+
+
                 }
             }
         });
@@ -220,9 +237,10 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
     private void addOrUpdateList(Beacon beacon)
     {
 
-        for(Iterator<BeaconIDAndDistance> iter = beaconList.iterator(); iter.hasNext();)
+        //update
+        for(int i = 0; i<beaconList.size(); ++i)
         {
-            BeaconIDAndDistance idAndDistance = iter.next();
+            BeaconIDAndDistance idAndDistance = beaconList.get(i);
 
             if(idAndDistance.getId()==beacon.getId3().toInt())
             {
@@ -231,7 +249,36 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
             }
         }
 
-        if(beacon.getId3().toInt()!=0)
+        //add
+        if(beacon.getId3().toInt()!=0) //not an iBeacon
                 beaconList.add(new BeaconIDAndDistance(beacon.getId3().toInt(),beacon.getDistance()));
     }
+
+    @Override
+    public void run() {
+
+        long currentTime = System.currentTimeMillis();
+        while (true)
+        {
+            if(System.currentTimeMillis()-currentTime>1000)
+            {
+                currentTime +=1000;
+
+                //drawView.addBox(new Rect(0,0,300,300));
+                if(beaconList.size()>=3) {
+                    for (int i = 0; i < 3; ++i) {
+                        addBox(translateWorldToMap(map.get(beaconList.get(i).getId())), translateMetersToPixels(beaconList.get(i).getDistance()));
+                    }
+                }
+                updateDrawview();
+            }
+        }
+
+
+
+    }
+
+
+
+
 }
