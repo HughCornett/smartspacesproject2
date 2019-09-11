@@ -22,6 +22,9 @@ import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.service.ArmaRssiFilter;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -100,6 +103,26 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer {
         else {return null; }
     }
 
+
+    private void initMap2() throws java.io.FileNotFoundException, java.io.IOException{
+        int k;
+        double x;
+        double y;
+
+        File csvFile = new File("res\beacons.csv");
+        BufferedReader csvReader = new BufferedReader(new FileReader(csvFile));
+        String row;
+        while ((row = csvReader.readLine()) != null) {
+            String[] data = row.split(";");
+            k = Integer.parseInt(data[4]);
+            y  = Double.parseDouble(data[3]);
+            x = Double.parseDouble(data[2]);
+            map.put(k, new CoordinatePair(x, y));
+        }
+        csvReader.close();
+
+
+    }
     private void initMap()
     {
         //add beacons and their locations to the hashmap
