@@ -2,10 +2,12 @@ package com.example.smartspacesproject2;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,17 +30,21 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
-public class MainActivity extends AppCompatActivity implements BeaconConsumer {
+import android.view.Display;
+
+public class MainActivity extends FragmentActivity implements BeaconConsumer {
     //CONSTANT VARIABLES
-    public static final int BOTTOM_BORDER = 125;
-    public static final int LEFT_BORDER = 205;
-    public static final int WIDTH = 1185;
-    public static final int HEIGHT = 865;
-    public static final double PIXELS_PER_METER = 23.7;
+
 
     //OTHER VARIABLES
     DrawView drawView;
     private static Vector<Rect> boxes = new Vector<>();
+    public static Display display;
+    public static int BOTTOM_BORDER;
+    public static int LEFT_BORDER;
+    public static int WIDTH;
+    public static int HEIGHT;
+    public static double PIXELS_PER_METER;
 
     //Dictionary of beacon name to pixel coordinates on screen
     Map<Integer, CoordinatePair> map = new HashMap<>();
@@ -176,9 +182,6 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
-        //initialize the dictionary of beacon IDs to coordinates
-
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initMap();
@@ -188,7 +191,22 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
         drawView.setBackgroundColor(Color.WHITE);
         setContentView(drawView);
 
-        addBox(translateWorldToMap(map.get(53)), translateMetersToPixels(2));
+        display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        MainActivity.display.getSize(size);
+
+
+        //initialize variables for image size etc.
+
+        BOTTOM_BORDER = (int) Math.round(size.x*0.11);
+        LEFT_BORDER = (int) Math.round(size.y*0.11);
+        HEIGHT = size.x - (int) Math.round(size.x*0.19);
+        WIDTH = size.y - (int) Math.round(size.y*0.35);
+        PIXELS_PER_METER = WIDTH / 50;
+
+        addBox(BOTTOM_BORDER, LEFT_BORDER, 10);
+        addBox(BOTTOM_BORDER + HEIGHT, LEFT_BORDER + WIDTH, 10);
+        addBox(translateWorldToMap(map.get(53)), translateMetersToPixels(19));
 
         updateDrawview();
 
@@ -219,7 +237,6 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
 
     private void addOrUpdateList(Beacon beacon)
     {
-
         for(Iterator<BeaconIDAndDistance> iter = beaconList.iterator(); iter.hasNext();)
         {
             BeaconIDAndDistance idAndDistance = iter.next();
