@@ -22,9 +22,9 @@ public class MainActivity extends AppCompatActivity {
     private static Vector<Rect> boxes = new Vector<>();
 
     //Dictionary of beacon name to pixel coordinates on screen
-    Map<Integer, CoordinatePair> map = new HashMap<Integer, CoordinatePair>();
+    Map<Integer, CoordinatePair> map = new HashMap<>();
 
-    public static CoordinatePair translateWorldToMap(CoordinatePair worldCoordinates)
+    private static CoordinatePair translateWorldToMap(CoordinatePair worldCoordinates)
     {
         int newX = BOTTOM_BORDER + (int) Math.round((worldCoordinates.getY()/38)*HEIGHT);
         int newY = LEFT_BORDER + (int) Math.round((worldCoordinates.getX()/50)*WIDTH);
@@ -32,22 +32,21 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public static void addBox(int x, int y, int radius)
+    private void addBox(int x, int y, int radius)
     {
         boxes.add(new Rect(x-radius,y+radius,x+radius,y-radius));
     }
-    public static void addBox(CoordinatePair coordinates, int radius)
+    private void addBox(CoordinatePair coordinates, int radius)
     {
         boxes.add(new Rect((int) coordinates.getX()-radius,(int) coordinates.getY()+radius,
                 (int) coordinates.getX()+radius,(int) coordinates.getY()-radius));
     }
-    public static void updateDrawview()
+    private static void updateDrawview()
     {
         DrawView.updateBoxes(boxes);
     }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    private void initMap()
+    {
         //add beacons and their locations to the hashmap
         map.put(189, new CoordinatePair(24.93, 18.73));
         map.put(189, new CoordinatePair(31.35, 25.41));
@@ -99,6 +98,13 @@ public class MainActivity extends AppCompatActivity {
         map.put(143, new CoordinatePair(7.23, 12.76));
         map.put(180, new CoordinatePair(44.07, 25.11));
         map.put(181, new CoordinatePair(48.33, 36.81));
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState)
+    {
+        //initialize the dictionary of beacon IDs to coordinates
+        initMap();
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
