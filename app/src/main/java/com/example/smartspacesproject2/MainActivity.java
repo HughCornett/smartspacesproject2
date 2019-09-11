@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
         double x;
         double y;
 
-        File csvFile = new File("res\beacons.csv");
+        File csvFile = new File("ibeacons.csv");
         BufferedReader csvReader = new BufferedReader(new FileReader(csvFile));
         String row;
         while ((row = csvReader.readLine()) != null) {
@@ -114,9 +114,8 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
             map.put(k, new CoordinatePair(x, y));
         }
         csvReader.close();
-
-
     }
+
     private void initMap()
     {
         //add beacons and their locations to the hashmap
