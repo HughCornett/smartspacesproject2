@@ -4,9 +4,9 @@ import org.altbeacon.beacon.Beacon;
 
 import java.util.Comparator;
 
-public class SortByDistance implements Comparator<Beacon> {
+public class SortByDistance implements Comparator<BeaconIDAndDistance> {
     @Override
-    public int compare(Beacon beacon, Beacon beacon1) {
+    public int compare(BeaconIDAndDistance beacon, BeaconIDAndDistance beacon1) {
         if(beacon.getDistance()-beacon1.getDistance()<0)
         {
             return -1;

@@ -20,7 +20,9 @@ import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.service.ArmaRssiFilter;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -39,7 +41,11 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
 
     //Dictionary of beacon name to pixel coordinates on screen
     Map<Integer, CoordinatePair> map = new HashMap<>();
+
+
     private BeaconManager beaconManager;
+
+    private ArrayList<BeaconIDAndDistance> beaconList = new ArrayList<>();
 
     private static CoordinatePair translateWorldToMap(CoordinatePair worldCoordinates)
     {
@@ -179,15 +185,34 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
                     //beaconList.clear();
                     for(Iterator<Beacon> iterator = beacons.iterator(); iterator.hasNext();) {
                         Beacon beacon = iterator.next();
-
-
+                        addOrUpdateList(beacon);
                     }
 
+                    Collections.sort(beaconList,new SortByDistance());
                 }
             }
         });
         try {
             beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
         } catch (RemoteException e) {    }
+    }
+
+    private void addOrUpdateList(Beacon beacon)
+    {
+
+        for(Iterator<BeaconIDAndDistance> iter = beaconList.iterator(); iter.hasNext();)
+        {
+            BeaconIDAndDistance idAndDistance = iter.next();
+
+            if(idAndDistance.getId()==beacon.getId3().toInt())
+            {
+                idAndDistance.setDistance(beacon.getDistance());
+                return;
+            }
+        }
+
+        if(beacon.getId3().toInt()!=0)
+                beaconList.add(new BeaconIDAndDistance(beacon.getId3().toInt(),beacon.getDistance()));
+
     }
 }
