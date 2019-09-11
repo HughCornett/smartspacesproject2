@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
     public static final int LEFT_BORDER = 205;
     public static final int WIDTH = 1185;
     public static final int HEIGHT = 865;
+    public static final double PIXELS_PER_METER = 23.7;
 
     //OTHER VARIABLES
     DrawView drawView;
@@ -53,6 +54,10 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
         int newY = LEFT_BORDER + (int) Math.round((worldCoordinates.getX()/50)*WIDTH);
         return new CoordinatePair(newX, newY);
 
+    }
+    private static int translateMetersToPixels(double meters)
+    {
+        return (int) Math.round(meters * PIXELS_PER_METER);
     }
 
     private void addBox(int x, int y, int radius)
@@ -141,10 +146,7 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
         map.put(143, new CoordinatePair(7.23, 12.76));
         map.put(180, new CoordinatePair(44.07, 25.11));
         map.put(181, new CoordinatePair(48.33, 36.81));
-
-
     }
-
 
 
     private void initBeaconManager()
@@ -185,10 +187,8 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
         drawView = new DrawView(this);
         drawView.setBackgroundColor(Color.WHITE);
         setContentView(drawView);
-        addBox(125, 205, 10);
-        addBox(990, 1390, 10);
 
-        addBox(translateWorldToMap(map.get(108)), 100);
+        addBox(translateWorldToMap(map.get(53)), translateMetersToPixels(2));
 
         updateDrawview();
 
@@ -233,6 +233,5 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
 
         if(beacon.getId3().toInt()!=0)
                 beaconList.add(new BeaconIDAndDistance(beacon.getId3().toInt(),beacon.getDistance()));
-
     }
 }
