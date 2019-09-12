@@ -25,8 +25,8 @@ public class DrawView extends View
 
     // OTHER VARIABLES
     private Drawable mapImage;
-    private static Vector<Rect> drawnBoxes = new Vector<>();
     public static Rect imageBounds;
+    private Vector<Rect> drawnBoxes = new Vector<>();
 
     Paint paint = new Paint();
     public DrawView(Context context) {
@@ -34,9 +34,12 @@ public class DrawView extends View
         mapImage = context.getResources().getDrawable(R.mipmap.map_image_foreground);
     }
 
-    public static void updateBoxes(Vector<Rect> boxes)
+    public void updateView()
     {
-        drawnBoxes = boxes;
+        //drawnBoxes.clear();
+        //drawnBoxes.addAll(boxes);
+        invalidate();
+        //drawnBoxes.clear();
     }
 
     @Override
@@ -70,5 +73,15 @@ public class DrawView extends View
             canvas.drawRect(drawnBoxes.get(i), paint);
         }
 
+        //drawnBoxes.get(0).bottom+=5;
+        drawnBoxes.clear();
+
     }
+
+    public void addBox(Rect box)
+    {
+        drawnBoxes.add(box);
+    }
+
+
 }

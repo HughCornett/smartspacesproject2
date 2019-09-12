@@ -1,6 +1,7 @@
 package com.example.smartspacesproject2;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
@@ -12,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.graphics.Color;
 import android.os.RemoteException;
+import android.view.Display;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
@@ -31,15 +33,14 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
-import android.view.Display;
-
-public class MainActivity extends FragmentActivity implements BeaconConsumer {
+public class MainActivity extends FragmentActivity implements BeaconConsumer, Runnable{
     //CONSTANT VARIABLES
 
 
     //OTHER VARIABLES
     DrawView drawView;
-    private static Vector<Rect> boxes = new Vector<>();
+    private Vector<Rect> boxes = new Vector<>();
+
     public static Display display;
     public static int BOTTOM_BORDER;
     public static int LEFT_BORDER;
@@ -73,16 +74,19 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer {
     }
     private void addBox(CoordinatePair coordinates, int radius)
     {
-        boxes.add(new Rect((int) coordinates.getX()-radius,(int) coordinates.getY()+radius,
+        drawView.addBox(new Rect((int) coordinates.getX()-radius,(int) coordinates.getY()+radius,
                 (int) coordinates.getX()+radius,(int) coordinates.getY()-radius));
     }
     private void clearBoxes()
     {
         boxes.clear();
     }
-    private static void updateDrawview()
+
+    private void updateDrawview()
     {
-        DrawView.updateBoxes(boxes);
+        drawView.updateView();
+
+
     }
 
     private static Rect getBoxIntersection(Rect box1, Rect box2, Rect box3)
@@ -173,11 +177,14 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer {
         WIDTH = size.y - (int) Math.round(size.y*0.35);
         PIXELS_PER_METER = WIDTH / 50;
 
-        addBox(BOTTOM_BORDER, LEFT_BORDER, 10);
-        addBox(BOTTOM_BORDER + HEIGHT, LEFT_BORDER + WIDTH, 10);
-        addBox(translateWorldToMap(map.get(220)), translateMetersToPixels(2));
+        //addBox(BOTTOM_BORDER, LEFT_BORDER, 10);
+        //addBox(BOTTOM_BORDER + HEIGHT, LEFT_BORDER + WIDTH, 10);
+        //addBox(translateWorldToMap(map.get(53)), translateMetersToPixels(19));
 
-        updateDrawview();
+        //updateDrawview();
+
+        Thread thread = new Thread(this);
+        thread.start();
 
     }
 
@@ -206,9 +213,11 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer {
 
     private void addOrUpdateList(Beacon beacon)
     {
-        for(Iterator<BeaconIDAndDistance> iter = beaconList.iterator(); iter.hasNext();)
+
+        //update
+        for(int i = 0; i<beaconList.size(); ++i)
         {
-            BeaconIDAndDistance idAndDistance = iter.next();
+            BeaconIDAndDistance idAndDistance = beaconList.get(i);
 
             if(idAndDistance.getId()==beacon.getId3().toInt())
             {
@@ -217,7 +226,36 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer {
             }
         }
 
-        if(beacon.getId3().toInt()!=0)
+        //add
+        if(beacon.getId3().toInt()!=0) //not an iBeacon
                 beaconList.add(new BeaconIDAndDistance(beacon.getId3().toInt(),beacon.getDistance()));
     }
+
+    @Override
+    public void run() {
+
+        long currentTime = System.currentTimeMillis();
+        while (true)
+        {
+            if(System.currentTimeMillis()-currentTime>1000)
+            {
+                currentTime +=1000;
+
+                //drawView.addBox(new Rect(0,0,300,300));
+                if(beaconList.size()>=3) {
+                    for (int i = 0; i < 3; ++i) {
+                        addBox(translateWorldToMap(map.get(beaconList.get(i).getId())), translateMetersToPixels(5+beaconList.get(i).getDistance()));
+                    }
+                }
+                updateDrawview();
+            }
+        }
+
+
+
+    }
+
+
+
+
 }
