@@ -7,11 +7,13 @@ import androidx.fragment.app.FragmentActivity;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.graphics.Color;
 import android.os.RemoteException;
+import android.view.Display;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
@@ -21,6 +23,9 @@ import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.service.ArmaRssiFilter;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -31,15 +36,18 @@ import java.util.Vector;
 
 public class MainActivity extends FragmentActivity implements BeaconConsumer, Runnable{
     //CONSTANT VARIABLES
-    public static final int BOTTOM_BORDER = 125;
-    public static final int LEFT_BORDER = 205;
-    public static final int WIDTH = 1185;
-    public static final int HEIGHT = 865;
-    public static final double PIXELS_PER_METER = 23.7;
+
 
     //OTHER VARIABLES
     DrawView drawView;
     private Vector<Rect> boxes = new Vector<>();
+
+    public static Display display;
+    public static int BOTTOM_BORDER;
+    public static int LEFT_BORDER;
+    public static int WIDTH;
+    public static int HEIGHT;
+    public static double PIXELS_PER_METER;
 
     //Dictionary of beacon name to pixel coordinates on screen
     Map<Integer, CoordinatePair> map = new HashMap<>();
@@ -74,6 +82,7 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
     {
         boxes.clear();
     }
+
     private void updateDrawview()
     {
         drawView.updateView();
@@ -97,6 +106,26 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
         else {return null; }
     }
 
+
+    private void initMap2() throws java.io.FileNotFoundException, java.io.IOException{
+        int k;
+        double x;
+        double y;
+
+        File csvFile = new File("res\beacons.csv");
+        BufferedReader csvReader = new BufferedReader(new FileReader(csvFile));
+        String row;
+        while ((row = csvReader.readLine()) != null) {
+            String[] data = row.split(";");
+            k = Integer.parseInt(data[4]);
+            y  = Double.parseDouble(data[3]);
+            x = Double.parseDouble(data[2]);
+            map.put(k, new CoordinatePair(x, y));
+        }
+        csvReader.close();
+
+
+    }
     private void initMap()
     {
         //add beacons and their locations to the hashmap
@@ -180,20 +209,35 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
     protected void onCreate(Bundle savedInstanceState)
     {
         //initialize the dictionary of beacon IDs to coordinates
-        drawView = new DrawView(this);
-        drawView.setBackgroundColor(Color.WHITE);
-        setContentView(drawView);
-        super.onCreate(savedInstanceState);
 
+
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
         initMap();
         initBeaconManager();
 
+        drawView = new DrawView(this);
+        drawView.setBackgroundColor(Color.WHITE);
+        setContentView(drawView);
+
+        display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        MainActivity.display.getSize(size);
 
 
+        //initialize variables for image size etc.
 
-        //addBox(translateWorldToMap(map.get(53)), translateMetersToPixels(2));
+        BOTTOM_BORDER = (int) Math.round(size.x*0.11);
+        LEFT_BORDER = (int) Math.round(size.y*0.11);
+        HEIGHT = size.x - (int) Math.round(size.x*0.19);
+        WIDTH = size.y - (int) Math.round(size.y*0.35);
+        PIXELS_PER_METER = WIDTH / 50;
 
+        //addBox(BOTTOM_BORDER, LEFT_BORDER, 10);
+        //addBox(BOTTOM_BORDER + HEIGHT, LEFT_BORDER + WIDTH, 10);
+        //addBox(translateWorldToMap(map.get(53)), translateMetersToPixels(19));
 
+        //updateDrawview();
 
         Thread thread = new Thread(this);
         thread.start();
@@ -208,24 +252,13 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
                 if (beacons.size() > 0)
                 {
-
-
+                    //beaconList.clear();
                     for(Iterator<Beacon> iterator = beacons.iterator(); iterator.hasNext();) {
                         Beacon beacon = iterator.next();
                         addOrUpdateList(beacon);
                     }
 
                     Collections.sort(beaconList,new SortByDistance());
-
-                    /*clearBoxes();
-                    if(beaconList.size()>=3) {
-                        for (int i = 0; i < 3; ++i) {
-                            addBox(translateWorldToMap(map.get(beaconList.get(i).getId())), translateMetersToPixels(beaconList.get(i).getDistance()));
-                        }
-                    }
-                    updateDrawview();*/
-
-
                 }
             }
         });
@@ -267,7 +300,7 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
                 //drawView.addBox(new Rect(0,0,300,300));
                 if(beaconList.size()>=3) {
                     for (int i = 0; i < 3; ++i) {
-                        addBox(translateWorldToMap(map.get(beaconList.get(i).getId())), translateMetersToPixels(beaconList.get(i).getDistance()));
+                        addBox(translateWorldToMap(map.get(beaconList.get(i).getId())), translateMetersToPixels(5+beaconList.get(i).getDistance()));
                     }
                 }
                 updateDrawview();
