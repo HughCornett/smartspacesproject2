@@ -7,9 +7,9 @@ import java.util.Vector;
 
 public class BeaconIDAndDistance {
 
-    private final int N = 2;
+    private final double N = 1.5;
 
-    private String mac = new String();
+    private String mac;
     private int rssi;
     private int measuredPower;
     private Vector<Integer> rssis = new Vector<>();
@@ -18,7 +18,7 @@ public class BeaconIDAndDistance {
 
     public BeaconIDAndDistance(String mac, int measuredPower)
     {
-        this.mac.concat(mac);
+        this.mac = new String(mac);
         //this.rssi = rssi;
         this.measuredPower=measuredPower;
 
@@ -58,22 +58,36 @@ public class BeaconIDAndDistance {
         //Vector<Double> temp = new Vector<>();
         //temp.addAll(distances);
         Collections.sort(rssis);
-        int i = 0 ;
-        for (; i<rssis.size()*8/10; ++i) {
+        int i = rssis.size()/10 ;
+        for (; i<rssis.size()*9/10; ++i) {
 
             sum+=rssis.get(i).doubleValue();
 
         }
 
-        return sum/i;
+        return sum/((rssis.size()*9/10)-(rssis.size()/10));
 
     }
+
+    private double getRssiMin()
+    {
+
+        Collections.sort(rssis);
+        //Vector<Double> result = new Vector<>();
+
+        //double median;
+
+
+        return rssis.get(rssis.size()/20);
+    }
+
+
 
     public void calculateDistance()
     {
 
-        Log.d("calcdist", ""+measuredPower+ " " + getRssiAverage());
-        distance = Math.pow(10.0, ((measuredPower-getRssiAverage())/20));
+        //Log.d("calcdist", ""+measuredPower+ " " + getRssiAverage());
+        distance = Math.pow(10.0, ((measuredPower-getRssiAverage())/(10*N)));
 
 
     }
