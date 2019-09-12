@@ -49,7 +49,7 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
     public static double PIXELS_PER_METER;
 
     //Dictionary of beacon name to pixel coordinates on screen
-    Map<Integer, CoordinatePair> map = new HashMap<>();
+    Map<String, CoordinatePair> map = new HashMap<>();
 
 
     private BeaconManager beaconManager;
@@ -106,7 +106,7 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
     }
 
     private void initMap() throws java.io.IOException{
-        int k;
+        String k;
         double x;
         double y;
 
@@ -115,9 +115,13 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
         ));
         String[] row;
         while ((row = csvReader.readNext()) != null) {
-            k = Integer.parseInt(row[4]);
+            System.out.println(row[1]);
+            //take the MAC address without the single quotes at the start and end
+            k = row[1].substring(1, 18);
+            //take the x and y coords for the value as a CoordinatePair
             y  = Double.parseDouble(row[3]);
             x = Double.parseDouble(row[2]);
+            //add to the hashmap
             map.put(k, new CoordinatePair(x, y));
         }
         csvReader.close();
@@ -179,7 +183,7 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
         //addBox(BOTTOM_BORDER, LEFT_BORDER, 10);
         //addBox(BOTTOM_BORDER + HEIGHT, LEFT_BORDER + WIDTH, 10);
-        //addBox(translateWorldToMap(map.get(53)), translateMetersToPixels(19));
+        addBox(translateWorldToMap(map.get("C0:F9:12:41:5F:A9")), translateMetersToPixels(19));
 
         //updateDrawview();
 
