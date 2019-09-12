@@ -40,7 +40,7 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
     //OTHER VARIABLES
     DrawView drawView;
-    private Vector<Rect> boxes = new Vector<>();
+    //private Vector<Rect> boxes = new Vector<>();
 
     public static Display display;
     public static int BOTTOM_BORDER;
@@ -71,16 +71,12 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
     private void addBox(int x, int y, int radius)
     {
-        boxes.add(new Rect(x-radius,y+radius,x+radius,y-radius));
+        drawView.addBox(new Rect(x-radius,y+radius,x+radius,y-radius));
     }
     private void addBox(CoordinatePair coordinates, int radius)
     {
         drawView.addBox(new Rect((int) coordinates.getX()-radius,(int) coordinates.getY()+radius,
                 (int) coordinates.getX()+radius,(int) coordinates.getY()-radius));
-    }
-    private void clearBoxes()
-    {
-        boxes.clear();
     }
 
     private void updateDrawview()
@@ -232,11 +228,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
         WIDTH = size.y - (int) Math.round(size.y*0.35);
         PIXELS_PER_METER = WIDTH / 50;
 
-        //addBox(BOTTOM_BORDER, LEFT_BORDER, 10);
-        //addBox(BOTTOM_BORDER + HEIGHT, LEFT_BORDER + WIDTH, 10);
-        //addBox(translateWorldToMap(map.get(53)), translateMetersToPixels(19));
-
-        //updateDrawview();
 
         Thread thread = new Thread(this);
         thread.start();
@@ -257,7 +248,7 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
                         addOrUpdateList(beacon);
                     }
 
-                    Collections.sort(beaconList,new SortByDistance());
+
                 }
             }
         });
@@ -276,34 +267,41 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
             if(idAndDistance.getId()==beacon.getId3().toInt())
             {
-                idAndDistance.setDistance(beacon.getDistance());
+                //idAndDistance.setMeasuredPower(beacon.getTxPower());
+                idAndDistance.addRssi(beacon.getRssi());
                 return;
             }
         }
 
         //add
         if(beacon.getId3().toInt()!=0) //not an iBeacon
-                beaconList.add(new BeaconIDAndDistance(beacon.getId3().toInt(),beacon.getDistance()));
+        {
+            beaconList.add(new BeaconIDAndDistance(beacon.getId3().toInt(), beacon.getTxPower()));
+            //beaconList.get(beaconList.size()-1).calculateDistance(beacon.getRssi());
+        }
     }
 
     @Override
     public void run() {
 
         long currentTime = System.currentTimeMillis();
+        long restartTime = System.currentTimeMillis();
         while (true)
         {
             if(System.currentTimeMillis()-currentTime>1000)
             {
                 currentTime +=1000;
 
-                //drawView.addBox(new Rect(0,0,300,300));
+                Collections.sort(beaconList, new SortByDistance());
                 if(beaconList.size()>=3) {
                     for (int i = 0; i < 3; ++i) {
-                        addBox(translateWorldToMap(map.get(beaconList.get(i).getId())), translateMetersToPixels(5+beaconList.get(i).getDistance()));
+                        addBox(translateWorldToMap(map.get(beaconList.get(i).getId())), translateMetersToPixels(beaconList.get(i).getDistance()));
                     }
                 }
                 updateDrawview();
             }
+
+
         }
 
 
