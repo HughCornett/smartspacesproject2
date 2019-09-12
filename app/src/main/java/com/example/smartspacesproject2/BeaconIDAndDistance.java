@@ -9,16 +9,16 @@ public class BeaconIDAndDistance {
 
     private final int N = 2;
 
-    private int id;
+    private String mac = new String();
     private int rssi;
     private int measuredPower;
     private Vector<Integer> rssis = new Vector<>();
     private double distance;
 
 
-    public BeaconIDAndDistance(int id, int measuredPower)
+    public BeaconIDAndDistance(String mac, int measuredPower)
     {
-        this.id=id;
+        this.mac.concat(mac);
         //this.rssi = rssi;
         this.measuredPower=measuredPower;
 
@@ -38,8 +38,8 @@ public class BeaconIDAndDistance {
         return distance;
     }
 
-    public int getId() {
-        return id;
+    public String getMac() {
+        return mac;
     }
 
     public void addRssi(int rssi)
@@ -47,8 +47,8 @@ public class BeaconIDAndDistance {
         this.rssis.add(rssi);
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setMac(String id) {
+        this.mac = id;
     }
     
     

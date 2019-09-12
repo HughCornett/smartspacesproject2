@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.graphics.Color;
 import android.os.RemoteException;
+import android.util.Log;
 import android.view.Display;
 
 import org.altbeacon.beacon.Beacon;
@@ -111,9 +112,10 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
         ));
         String[] row;
         while ((row = csvReader.readNext()) != null) {
-            System.out.println(row[1]);
+            Log.d("mac",""+row[1]);
             //take the MAC address without the single quotes at the start and end
             k = row[1].substring(1, 18);
+            //Log.d("mac",k);
             //take the x and y coords for the value as a CoordinatePair
             y  = Double.parseDouble(row[3]);
             x = Double.parseDouble(row[2]);
@@ -217,7 +219,7 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
         {
             BeaconIDAndDistance idAndDistance = beaconList.get(i);
 
-            if(idAndDistance.getId()==beacon.getId3().toInt())
+            if(idAndDistance.getMac().equals(beacon.getBluetoothAddress()))
             {
                 //idAndDistance.setMeasuredPower(beacon.getTxPower());
                 idAndDistance.addRssi(beacon.getRssi());
@@ -228,8 +230,8 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
         //add
         if(beacon.getId3().toInt()!=0) //not an iBeacon
         {
-            beaconList.add(new BeaconIDAndDistance(beacon.getId3().toInt(), beacon.getTxPower()));
-            //beaconList.get(beaconList.size()-1).calculateDistance(beacon.getRssi());
+            beaconList.add(new BeaconIDAndDistance(beacon.getBluetoothAddress(), beacon.getTxPower()));
+            beaconList.get(beaconList.size()-1).addRssi(beacon.getRssi());
         }
     }
 
@@ -237,20 +239,23 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
     public void run() {
 
         long currentTime = System.currentTimeMillis();
+        long restartTime = System.currentTimeMillis();
         while (true)
         {
             if(System.currentTimeMillis()-currentTime>1000)
             {
                 currentTime +=1000;
 
-                //drawView.addBox(new Rect(0,0,300,300));
+                /*Collections.sort(beaconList, new SortByDistance());
                 if(beaconList.size()>=3) {
                     for (int i = 0; i < 3; ++i) {
-                        addBox(translateWorldToMap(map.get(beaconList.get(i).getId())), translateMetersToPixels(5+beaconList.get(i).getDistance()));
+                        addBox(translateWorldToMap(map.get(beaconList.get(i).getMac())), translateMetersToPixels(beaconList.get(i).getDistance()));
                     }
                 }
-                updateDrawview();
+                updateDrawview();*/
             }
+
+
         }
 
 
