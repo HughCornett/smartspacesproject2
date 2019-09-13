@@ -6,6 +6,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -59,7 +60,9 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
     private BeaconManager beaconManager;
 
-    private ArrayList<BeaconIDAndDistance> beaconList = new ArrayList<>();
+    private static ArrayList<BeaconIDAndDistance> beaconList = new ArrayList<>();
+
+    private static long stopTime;
 
     /**
      * takes a real world coordinate pair
@@ -297,6 +300,7 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
         initBeaconManager();
 
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         //initialise the drawView
         drawView = new DrawView(this);
         drawView.setBackgroundColor(Color.WHITE);
@@ -374,26 +378,43 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
     public void run() {
 
         long currentTime = System.currentTimeMillis();
-        long restartTime = System.currentTimeMillis();
+        stopTime = System.currentTimeMillis();
+        boolean stop = false;
         while (true)
         {
             if(System.currentTimeMillis()-currentTime>1000)
             {
                 currentTime +=1000;
 
-                Collections.sort(beaconList, new SortByDistance());
+                if(!stop) {
+                    Collections.sort(beaconList, new SortByDistance());
 
-                //get the intersection of the three beacons with highest RSSIs
-                Rect intersection = modifyAndDrawBoxes();
-                //if an intersection was found
-                if(intersection != null)
-                {
-                    //find the center of this intersection
-                    CoordinatePair center = new CoordinatePair(intersection.right - intersection.width()/2, intersection.bottom - intersection.height()/2);
-                    //draw a circle
-                    DrawView.position = center;
+                    //get the intersection of the three beacons with highest RSSIs
+                    Rect intersection = modifyAndDrawBoxes();
+                    //if an intersection was found
+                    if (intersection != null) {
+                        //find the center of this intersection
+                        CoordinatePair center = new CoordinatePair(intersection.right - intersection.width() / 2, intersection.bottom - intersection.height() / 2);
+                        //draw a circle
+                        DrawView.position = center;
+                    }
                 }
             }
+
+            if(System.currentTimeMillis()-stopTime>25000)
+            {
+                stop = true;
+            }
+            else stop = false;
         }
+    }
+
+
+
+    public static void restart()
+    {
+        beaconList.clear();
+        stopTime = System.currentTimeMillis();
+
     }
 }
