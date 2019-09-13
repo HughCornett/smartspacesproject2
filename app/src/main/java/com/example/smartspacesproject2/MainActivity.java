@@ -41,7 +41,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
     //OTHER VARIABLES
     DrawView drawView;
-    //private Vector<Rect> boxes = new Vector<>();
 
     //Constant variables describing screen that are set on app launch
     public static Display display;
@@ -232,7 +231,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
         //while there is a next row
         String[] row;
         while ((row = csvReader.readNext()) != null) {
-            //Log.d("mac", row[1]);
             //take the MAC address without the single quotes at the start and end
             k = row[1].substring(1, 18);
             Log.d("mac2", k);
@@ -317,9 +315,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
         WIDTH = size.y - (int) Math.round(size.y*0.35);
         PIXELS_PER_METER = WIDTH / 50;
 
-        //addBox(BOTTOM_BORDER, LEFT_BORDER, 10);
-        //addBox(BOTTOM_BORDER + HEIGHT, LEFT_BORDER + WIDTH, 10);
-        //addBox(translateWorldToMap(map.get("C0:F9:12:41:5F:A9")), translateMetersToPixels(19));
 
         //start the thread
         Thread thread = new Thread(this);
@@ -335,7 +330,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
                 if (beacons.size() > 0)
                 {
-                    //beaconList.clear();
                     for(Iterator<Beacon> iterator = beacons.iterator(); iterator.hasNext();) {
                         Beacon beacon = iterator.next();
                         addOrUpdateList(beacon);
@@ -352,7 +346,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
     private void addOrUpdateList(Beacon beacon)
     {
-        //Log.d("address",beacon.getBluetoothAddress());
         //update
         for(int i = 0; i<beaconList.size(); ++i)
         {
@@ -360,7 +353,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
             if(idAndDistance.getMac().equals(beacon.getBluetoothAddress()))
             {
-                //idAndDistance.setMeasuredPower(beacon.getTxPower());
                 idAndDistance.addRssi(beacon.getRssi());
                 return;
             }
@@ -404,6 +396,8 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
             if(System.currentTimeMillis()-stopTime>25000)
             {
                 stop = true;
+                drawView.clearBoxes();
+                updateDrawview();
             }
             else stop = false;
         }
