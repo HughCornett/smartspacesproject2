@@ -8,6 +8,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 
 
+import android.view.MotionEvent;
 import android.view.View;
 import android.graphics.Point;
 
@@ -48,10 +49,7 @@ public class DrawView extends View
      */
     public void updateView()
     {
-        //drawnBoxes.clear();
-        //drawnBoxes.addAll(boxes);
         invalidate();
-        //drawnBoxes.clear();
     }
 
     @Override
@@ -80,9 +78,7 @@ public class DrawView extends View
             canvas.drawRect(drawnBoxes.get(i), paint);
         }
 
-        //drawnBoxes.get(0).bottom+=5;
-        drawnBoxes.clear();
-
+        clearBoxes();
         //redfine the color and transparency
         paint.setColor(CIRCLE_COLOR);
         paint.setAlpha(CIRCLE_ALPHA);
@@ -95,5 +91,24 @@ public class DrawView extends View
     public void addBox(Rect box)
     {
         drawnBoxes.add(box);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+
+
+        return performClick();
+    }
+
+    @Override
+    public boolean performClick() {
+
+        MainActivity.restart();
+        return super.performClick();
+    }
+
+    public void clearBoxes()
+    {
+        drawnBoxes.clear();
     }
 }

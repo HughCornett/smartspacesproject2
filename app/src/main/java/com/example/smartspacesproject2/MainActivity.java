@@ -6,6 +6,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -40,7 +41,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
     //OTHER VARIABLES
     DrawView drawView;
-    //private Vector<Rect> boxes = new Vector<>();
 
     //Constant variables describing screen that are set on app launch
     public static Display display;
@@ -59,7 +59,9 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
     private BeaconManager beaconManager;
 
-    private ArrayList<BeaconIDAndDistance> beaconList = new ArrayList<>();
+    private static ArrayList<BeaconIDAndDistance> beaconList = new ArrayList<>();
+
+    private static long stopTime;
 
     /**
      * takes a real world coordinate pair
@@ -100,12 +102,10 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
      * @param radius
      *  the closest distance from the center to the edge of the box
      */
-    /*
     private void addBox(int x, int y, int radius)
     {
         drawView.addBox(new Rect(x-radius,y-radius,x+radius,y+radius));
     }
-     */
 
     /**
      * Adds a box to the list of boxes
@@ -114,19 +114,11 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
      * @param radius
      *  the closest distance from the center of the edge of the box
      */
-    /*
     private void addBox(CoordinatePair coordinates, int radius)
     {
         drawView.addBox(new Rect((int) coordinates.getX()-radius,(int) coordinates.getY()-radius,
                 (int) coordinates.getX()+radius,(int) coordinates.getY()+radius));
     }
-    */
-
-    /**
-     * Adds a box to the drawView
-     * @param box
-     *  the box to be added
-     */
     private void addBox(Rect box)
     {
         drawView.addBox(box);
@@ -204,6 +196,7 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
                 //while the three best beacons have not been found and there are still beacons to check
                 int count = 0;
                 int i = 0;
+
                 while(i < beaconList.size() && count<3)
                 {
                     //if this beacon has a MAC address in the beacon hashmap
@@ -263,7 +256,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
         //while there is a next row
         String[] row;
         while ((row = csvReader.readNext()) != null) {
-            //Log.d("mac", row[1]);
             //take the MAC address without the single quotes at the start and end
             k = row[1].substring(1, 18);
             Log.d("mac2", k);
@@ -328,6 +320,7 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
         initBeaconManager();
 
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         //initialise the drawView
         drawView = new DrawView(this);
         drawView.setBackgroundColor(Color.WHITE);
@@ -344,6 +337,7 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
         WIDTH = size.y - (int) Math.round(size.y*0.35);
         PIXELS_PER_METER = WIDTH / 50;
 
+
         //start the thread
         Thread thread = new Thread(this);
         thread.start();
@@ -358,7 +352,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
                 if (beacons.size() > 0)
                 {
-                    //beaconList.clear();
                     for(Iterator<Beacon> iterator = beacons.iterator(); iterator.hasNext();) {
                         Beacon beacon = iterator.next();
                         addOrUpdateList(beacon);
@@ -382,7 +375,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
             if(idAndDistance.getMac().equals(beacon.getBluetoothAddress()))
             {
-                //idAndDistance.setMeasuredPower(beacon.getTxPower());
                 idAndDistance.addRssi(beacon.getRssi());
                 return;
             }
@@ -400,26 +392,45 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
     public void run() {
 
         long currentTime = System.currentTimeMillis();
-        long restartTime = System.currentTimeMillis();
+        stopTime = System.currentTimeMillis();
+        boolean stop = false;
         while (true)
         {
             if(System.currentTimeMillis()-currentTime>1000)
             {
                 currentTime +=1000;
 
-                Collections.sort(beaconList, new SortByDistance());
+                if(!stop) {
+                    Collections.sort(beaconList, new SortByDistance());
 
-                //get the intersection of the three beacons with highest RSSIs
-                Rect intersection = modifyAndDrawBoxes();
-                //if an intersection was found
-                if(intersection != null)
-                {
-                    //find the center of this intersection
-                    CoordinatePair center = new CoordinatePair(intersection.right - intersection.width()/2, intersection.bottom - intersection.height()/2);
-                    //draw a circle
-                    DrawView.position = center;
+                    //get the intersection of the three beacons with highest RSSIs
+                    Rect intersection = modifyAndDrawBoxes();
+                    //if an intersection was found
+                    if (intersection != null) {
+                        //find the center of this intersection
+                        CoordinatePair center = new CoordinatePair(intersection.right - intersection.width() / 2, intersection.bottom - intersection.height() / 2);
+                        //draw a circle
+                        DrawView.position = center;
+                    }
                 }
             }
+
+            if(System.currentTimeMillis()-stopTime>25000)
+            {
+                stop = true;
+                drawView.clearBoxes();
+                updateDrawview();
+            }
+            else stop = false;
         }
+    }
+
+
+
+    public static void restart()
+    {
+        beaconList.clear();
+        stopTime = System.currentTimeMillis();
+
     }
 }
