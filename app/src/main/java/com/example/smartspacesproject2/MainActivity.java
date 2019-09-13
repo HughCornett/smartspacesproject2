@@ -102,7 +102,7 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
      */
     private void addBox(int x, int y, int radius)
     {
-        drawView.addBox(new Rect(x-radius,y+radius,x+radius,y-radius));
+        drawView.addBox(new Rect(x-radius,y-radius,x+radius,y+radius));
     }
 
     /**
@@ -114,8 +114,17 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
      */
     private void addBox(CoordinatePair coordinates, int radius)
     {
-        drawView.addBox(new Rect((int) coordinates.getX()-radius,(int) coordinates.getY()+radius,
-                (int) coordinates.getX()+radius,(int) coordinates.getY()-radius));
+        drawView.addBox(new Rect((int) coordinates.getX()-radius,(int) coordinates.getY()-radius,
+                (int) coordinates.getX()+radius,(int) coordinates.getY()+radius));
+    }
+    private void addBox(Rect box)
+    {
+        drawView.addBox(box);
+    }
+    private Rect createBox(CoordinatePair coordinates, int radius)
+    {
+        return new Rect((int) coordinates.getX()-radius,(int) coordinates.getY()-radius,
+                (int) coordinates.getX()+radius,(int) coordinates.getY()+radius);
     }
 
     /**
@@ -124,8 +133,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
     private void updateDrawview()
     {
         drawView.updateView();
-
-
     }
 
     /**
@@ -153,6 +160,54 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
         if(success) { return intersection; }
         else {return null; }
+    }
+
+    /**
+     * finds the appropriate size of the boxes so that they all intersect and then draws them
+     * increases box radius by 10% per step until intersection
+     * @return
+     *  returns a Rect representing the intersection
+     */
+    private Rect modifyAndDrawBoxes()
+    {
+        if(beaconList.size()>=3)
+        {
+            double modifier = 1.0;
+            while(true)
+            {
+                Vector<Rect> top3rects = new Vector<>();
+                int count = 0;
+                int i = 0;
+
+                while(i < beaconList.size() && count<3)
+                {
+                    if(map.get(beaconList.get(i).getMac()) != null)
+                    {
+                        top3rects.add(createBox(translateWorldToMap(map.get(beaconList.get(i).getMac())), (int) Math.round(translateMetersToPixels(beaconList.get(i).getDistance())*modifier)));
+                        count++;
+                    }
+                    i++;
+                }
+
+                Rect intersection = getBoxIntersection(top3rects.get(0), top3rects.get(1), top3rects.get(2));
+                if(intersection != null)
+                {
+                    for (int j = 0; j < 3; j++)
+                    {
+                        addBox(top3rects.get(j));
+                    }
+                    addBox(intersection);
+                    updateDrawview();
+                    return intersection;
+                }
+                else
+                {
+                    modifier += 0.1;
+                }
+            }
+        }
+        //there were not three beacons
+        return null;
     }
 
     /**
@@ -262,8 +317,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
         //addBox(BOTTOM_BORDER + HEIGHT, LEFT_BORDER + WIDTH, 10);
         //addBox(translateWorldToMap(map.get("C0:F9:12:41:5F:A9")), translateMetersToPixels(19));
 
-        //updateDrawview();
-
         //start the thread
         Thread thread = new Thread(this);
         thread.start();
@@ -330,47 +383,17 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
                 Collections.sort(beaconList, new SortByDistance());
 
-                if(beaconList.size()>=3) {
-                    /*
-                    int size=3;
-                    for (int i = 0; i < size && i<beaconList.size(); ++i) {
-                        //Log.d("mac attempt",""+beaconList.get(i).getMac());
-                        //System.out.println(beaconList.get(i).getMac());
-                        if(map.get(beaconList.get(i).getMac()) != null) {
-                            addBox(translateWorldToMap(map.get(beaconList.get(i).getMac())), translateMetersToPixels(beaconList.get(i).getDistance()));
-                        }
-                        else ++size;
-
-
-                    }
-                    */
-                    int count = 0;
-                    int i = 0;
-
-                    while(i < beaconList.size() && count<3)
-                    {
-                        Log.d("sortedlist",beaconList.get(i).getMac() + " " + beaconList.get(i).getDistance());
-                        if(map.get(beaconList.get(i).getMac()) != null) {
-
-                                addBox(translateWorldToMap(map.get(beaconList.get(i).getMac())), translateMetersToPixels(beaconList.get(i).getDistance()));
-
-                                count++;
-
-                        }
-                        i++;
-                    }
+                //get the intersection of the three beacons with highest RSSIs
+                Rect intersection = modifyAndDrawBoxes();
+                //if an intersection was found
+                if(intersection != null)
+                {
+                    //find the center of this intersection
+                    CoordinatePair center = new CoordinatePair(intersection.right - intersection.width()/2, intersection.bottom - intersection.height()/2);
+                    //draw a circle
+                    DrawView.position = center;
                 }
-                updateDrawview();
             }
-
-
         }
-
-
-
     }
-
-
-
-
 }

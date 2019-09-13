@@ -65,8 +65,14 @@ public class BeaconIDAndDistance {
 
         }
 
-        return sum/((rssis.size()*9/10)-(rssis.size()/10));
-
+        double denominator = ((rssis.size()*9/10)-(rssis.size()/10));
+        if(denominator != 0)
+        {
+            return sum/denominator;
+        }
+        else {
+            return rssis.get(0);
+        }
     }
 
     private double getRssiMin()
