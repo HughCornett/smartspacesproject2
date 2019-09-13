@@ -100,10 +100,12 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
      * @param radius
      *  the closest distance from the center to the edge of the box
      */
+    /*
     private void addBox(int x, int y, int radius)
     {
         drawView.addBox(new Rect(x-radius,y-radius,x+radius,y+radius));
     }
+     */
 
     /**
      * Adds a box to the list of boxes
@@ -112,15 +114,33 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
      * @param radius
      *  the closest distance from the center of the edge of the box
      */
+    /*
     private void addBox(CoordinatePair coordinates, int radius)
     {
         drawView.addBox(new Rect((int) coordinates.getX()-radius,(int) coordinates.getY()-radius,
                 (int) coordinates.getX()+radius,(int) coordinates.getY()+radius));
     }
+    */
+
+    /**
+     * Adds a box to the drawView
+     * @param box
+     *  the box to be added
+     */
     private void addBox(Rect box)
     {
         drawView.addBox(box);
     }
+
+    /**
+     * returns a rectangle around given coordinates and with given radius
+     * @param coordinates
+     *  the coordinates of the center of the square
+     * @param radius
+     *  the distance from the center of the square to the nearest edge
+     * @return
+     *  the Rect that has been created
+     */
     private Rect createBox(CoordinatePair coordinates, int radius)
     {
         return new Rect((int) coordinates.getX()-radius,(int) coordinates.getY()-radius,
@@ -170,38 +190,52 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
      */
     private Rect modifyAndDrawBoxes()
     {
+        //if there are at least 3 beacons
         if(beaconList.size()>=3)
         {
+            //initially do not increase the boxes' sizes
             double modifier = 1.0;
+            //repeat until the function returns
             while(true)
             {
+                //store the best 3 beacons' boxes
                 Vector<Rect> top3rects = new Vector<>();
+
+                //while the three best beacons have not been found and there are still beacons to check
                 int count = 0;
                 int i = 0;
-
                 while(i < beaconList.size() && count<3)
                 {
+                    //if this beacon has a MAC address in the beacon hashmap
+                    // (so if it is an iBeacon)
                     if(map.get(beaconList.get(i).getMac()) != null)
                     {
+                        //add it to the top 3 beacons list and add 1 to number of beacons found
                         top3rects.add(createBox(translateWorldToMap(map.get(beaconList.get(i).getMac())), (int) Math.round(translateMetersToPixels(beaconList.get(i).getDistance())*modifier)));
                         count++;
                     }
                     i++;
                 }
 
+                //get the intersection of the three best beacons
                 Rect intersection = getBoxIntersection(top3rects.get(0), top3rects.get(1), top3rects.get(2));
+                //if there is an intersection
                 if(intersection != null)
                 {
+                    //draw the 3 boxes
                     for (int j = 0; j < 3; j++)
                     {
                         addBox(top3rects.get(j));
                     }
+                    //draw the intersection, update the draw view and return the intersection
                     addBox(intersection);
                     updateDrawview();
                     return intersection;
                 }
+                //if there was no intersection
                 else
                 {
+                    //increase the box radius' by 10% and repeat the cycle
                     modifier += 0.1;
                 }
             }
@@ -282,9 +316,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
-        //initialize the dictionary of beacon IDs to coordinates
-
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -312,10 +343,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
         HEIGHT = size.x - (int) Math.round(size.x*0.19);
         WIDTH = size.y - (int) Math.round(size.y*0.35);
         PIXELS_PER_METER = WIDTH / 50;
-
-        //addBox(BOTTOM_BORDER, LEFT_BORDER, 10);
-        //addBox(BOTTOM_BORDER + HEIGHT, LEFT_BORDER + WIDTH, 10);
-        //addBox(translateWorldToMap(map.get("C0:F9:12:41:5F:A9")), translateMetersToPixels(19));
 
         //start the thread
         Thread thread = new Thread(this);
@@ -348,7 +375,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
     private void addOrUpdateList(Beacon beacon)
     {
-        //Log.d("address",beacon.getBluetoothAddress());
         //update
         for(int i = 0; i<beaconList.size(); ++i)
         {

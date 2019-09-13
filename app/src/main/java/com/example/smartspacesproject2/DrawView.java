@@ -58,13 +58,8 @@ public class DrawView extends View
     public void onDraw(Canvas canvas) {
         //draw the map background
         imageBounds = canvas.getClipBounds();
-        /*
-        int newLeft = (int) (imageBounds.left - imageBounds.width()*WIDTH_MODIFIER);
-        int newRight = (int) (imageBounds.right + imageBounds.width()*WIDTH_MODIFIER);
-        int newTop = imageBounds.top;
-        int newBottom = imageBounds.bottom;
-         */
 
+        //calculate the bounds of the background image
         Point size = new Point();
         MainActivity.display.getSize(size);
         int newLeft = -(int) Math.round((size.x*SIZE_MODIFIER));
