@@ -24,10 +24,6 @@ public class DrawView extends View
     public static final int CIRCLE_COLOR = Color.BLUE;
     public static final int CIRCLE_RADIUS = 25;
 
-    public static final int LARGE_CIRCLE_ALPHA = 125;
-    public static final int LARGE_CIRCLE_COLOR = Color.BLUE;
-    public static final int LARGE_CIRCLE_RADIUS_MODIFIER = 2;
-
     //the amount on each side the width should be stretched to reduce image stretching
     public static final double SIZE_MODIFIER = 0.165;
 
@@ -88,6 +84,7 @@ public class DrawView extends View
             canvas.drawCircle((float) position.getX(), (float) position.getY(), CIRCLE_RADIUS, paint);
 
     }
+    //adds a box to the list
     public void addBox(Rect box)
     {
         drawnBoxes.add(box);

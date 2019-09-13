@@ -47,7 +47,7 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
     //pixel distances to bottom and left sides of the actual map
     public static int BOTTOM_BORDER;
     public static int LEFT_BORDER;
-    //pixel width and heigh of the map
+    //pixel width and height of the map
     public static int WIDTH;
     public static int HEIGHT;
     //number of pixels per real world meter
@@ -55,7 +55,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
 
     //Dictionary of beacon name to pixel coordinates on screen
     Map<String, CoordinatePair> map = new HashMap<>();
-
 
     private BeaconManager beaconManager;
 
@@ -94,7 +93,7 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
     }
 
     /**
-     * Adds a box to the list of boxes
+     * Adds a box to the drawView's list
      * @param x
      *  x coordinate of the center of the box
      * @param y
@@ -108,7 +107,7 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
     }
 
     /**
-     * Adds a box to the list of boxes
+     * Adds a box to the drawView's list
      * @param coordinates
      *  the CoordinatePair of the center of the box
      * @param radius
@@ -119,6 +118,12 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
         drawView.addBox(new Rect((int) coordinates.getX()-radius,(int) coordinates.getY()-radius,
                 (int) coordinates.getX()+radius,(int) coordinates.getY()+radius));
     }
+
+    /**
+     * Adds a box to the drawView's list
+     * @param box
+     *  the box to be added
+     */
     private void addBox(Rect box)
     {
         drawView.addBox(box);
@@ -424,8 +429,6 @@ public class MainActivity extends FragmentActivity implements BeaconConsumer, Ru
             else stop = false;
         }
     }
-
-
 
     public static void restart()
     {
